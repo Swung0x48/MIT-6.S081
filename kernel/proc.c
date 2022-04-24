@@ -130,6 +130,21 @@ found:
   return p;
 }
 
+uint64
+proccount(void) {
+  struct proc *p;
+  uint64 count = 0;
+
+  for(p = proc; p < &proc[NPROC]; p++) {
+    //acquire(&p->lock);
+    if(p->state != UNUSED) {
+      ++count;
+      //release(&p->lock);
+    } 
+  }
+  return count;
+}
+
 // free a proc structure and the data hanging from it,
 // including user pages.
 // p->lock must be held.
@@ -266,6 +281,8 @@ fork(void)
   if((np = allocproc()) == 0){
     return -1;
   }
+  // Copy trace mask from parent to child.
+  np->trace = p->trace;
 
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
